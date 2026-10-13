@@ -40,14 +40,6 @@ Sin embargo, el módulo maneja lógica 'inversa': Cuando está oprimido un botó
 | **Izquierda** | `0100 0000` | `0x40` | `(data & 0x40) != 0` | `0` (Falso) |
 | **Derecha** | `1000 0000` | `0x80` | `(data & 0x80) != 0` | `0` (Falso) |
 
-### Mapa de Memoria del Módulo NES (`cores/nes_ctrl/perip_nes.v`)
-
-| Dirección Base | Offset | Nombre de Registro | Tipo | Descripción |
-| :---: | :---: | :--- | :---: | :--- |
-| `0x450000` | `0x00` | `NES_DATA_REG` | Lectura | Estado de los 8 botones (Lógica Positiva: 1 = Presionado). |
-| `0x450004` | `0x04` | `NES_CTRL_REG` | Lectura / Escritura | Control de habilitación del polling automático y disparo manual. |
-| `0x450008` | `0x08` | `NES_STATUS_REG` | Lectura | Estado del módulo (1 = Lectura completada, 0 = Bus ocupado). |
-| `0x45000C` | `0x0C` | `NES_CLKDIV_REG` | Lectura / Escritura | Divisor de reloj para ajustar los pulsos de CLOCK y LATCH. |
 
 ## Funcionamiento Interno del NES
 ![Diagrama de Flujo](<img/Diagrama de Flujo-Controlador NES.drawio(2).png>)
