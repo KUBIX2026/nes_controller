@@ -1,4 +1,9 @@
-# nes_controller.v
+# Desarrollo del perifético NES 
+En el presente repositorio se encuentran los avances producidos e información general para el desarrollo y conexión del períferico mando NES en la consola KUBIX. 
+
+## ¿Qué se encuentra en este repositorio? 
+
+##
 
 ### Master y slave 
 En este caso, master es el módulo de la FPGA o el SoC encargado de controlar el NES
