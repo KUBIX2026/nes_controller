@@ -1,7 +1,6 @@
 # Desarrollo del perifético NES 
 En el presente repositorio se encuentran los avances producidos e información general para el desarrollo y conexión del períferico mando NES en la consola KUBIX. 
-
-## ¿Qué se encuentra en este repositorio? 
+ 
 
 ##
 
@@ -21,6 +20,7 @@ Latch es un pulso enviado por master que 'congela' el estado del 4021N interno e
 Sin embargo, el módulo maneja lógica 'inversa': Cuando está oprimido un botón, se obtiene '0' como valor, y cuando no está oprimido, se obtiene '1'. Por lo que cuando la línea Data llega a la FPGA, se le aplica una compuerta NOT. Por ejemplo, si en un ciclo se tiene start presionado: 
 
 ![Ejemplo Protocolo](img/protocolo_coms_ej.png)
+
 
 ## Diagrama de Bloques (Traductor NES)
 
