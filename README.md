@@ -5,9 +5,6 @@ En el presente repositorio se encuentran los avances producidos e información g
 
 ##
 
-### Master y slave 
-En este caso, master es el módulo de la FPGA o el SoC encargado de controlar el NES
-Slave es el mando físico del NES 
 ### Funcionamiento Interno del NES 
 ![Mapa NES](img/Interno_nes.png)
 
