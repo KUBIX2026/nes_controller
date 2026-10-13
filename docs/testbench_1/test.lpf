@@ -1,0 +1,10 @@
+LOCATE COMP "clk" SITE "P3";
+IOBUF PORT "clk" IO_TYPE=LVCMOS33;
+
+# UART hacia tu cable USB (Chip DAPLink)
+LOCATE COMP "uart_tx_pin" SITE "H18"; 
+IOBUF PORT "uart_tx_pin" IO_TYPE=LVCMOS33;
+
+# Pin de prueba para el multímetro
+LOCATE COMP "test_led" SITE "E1";
+IOBUF PORT "test_led" IO_TYPE=LVCMOS33;

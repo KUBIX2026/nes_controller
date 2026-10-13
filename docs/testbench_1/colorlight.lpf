@@ -1,0 +1,77 @@
+# =========================================================
+# RELOJ Y RESET
+# =========================================================
+# Reloj principal (Colorlight i9 usa un cristal de 25MHz en el pin P3)
+LOCATE COMP "clk" SITE "P3";
+IOBUF PORT "clk" IO_TYPE=LVCMOS33;
+
+# Reset (Como no tenemos un botón físico asignado, lo ponemos en un pin 
+# sin uso y forzamos un Pull-Up interno para que siempre esté en 1 lógico, 
+# permitiendo que la máquina de estados funcione sin detenerse).
+LOCATE COMP "rst_n" SITE "L1"; 
+IOBUF PORT "rst_n" IO_TYPE=LVCMOS33 PULLMODE=UP;
+
+# =========================================================
+# CONECTOR P1 (HUB75) - CONTROL NES
+# =========================================================
+# Pines asociados físicamente a los primeros pines del puerto P1.
+# NOTA: Los SITEs exactos (F3, F1, G3...) varían según la versión exacta 
+# de tu placa portadora. Estos son los más comunes.
+
+# NES Data <- Pin 1 (R0) del puerto P1
+LOCATE COMP "nes_data" SITE "F3"; 
+IOBUF PORT "nes_data" IO_TYPE=LVCMOS33 PULLMODE=UP;
+
+# NES Latch -> Pin 2 (G0) del puerto P1
+LOCATE COMP "nes_latch" SITE "F1"; 
+IOBUF PORT "nes_latch" IO_TYPE=LVCMOS33;
+
+# NES Clock -> Pin 3 (B0) del puerto P1
+LOCATE COMP "nes_clk" SITE "G3"; 
+IOBUF PORT "nes_clk" IO_TYPE=LVCMOS33;
+
+# =========================================================
+# SALIDA DE BOTONES (Asignados al resto del P1)
+# =========================================================
+# Es obligatorio asignarlos a pines de salida, de lo contrario Yosys 
+# borrará toda la lógica de tu control por considerarla "código muerto".
+# Puedes usarlos para conectar LEDs y depurar.
+
+# Botón A -> Pin 5 (R1) del P1
+LOCATE COMP "buttons[0]" SITE "G2";
+IOBUF PORT "buttons[0]" IO_TYPE=LVCMOS33;
+
+# Botón B -> Pin 6 (G1) del P1
+LOCATE COMP "buttons[1]" SITE "H3"; 
+IOBUF PORT "buttons[1]" IO_TYPE=LVCMOS33;
+
+# Select -> Pin 7 (B1) del P1
+LOCATE COMP "buttons[2]" SITE "H4"; 
+IOBUF PORT "buttons[2]" IO_TYPE=LVCMOS33;
+
+# Start -> Pin 9 (A) del P1
+LOCATE COMP "buttons[3]" SITE "J3"; 
+IOBUF PORT "buttons[3]" IO_TYPE=LVCMOS33;
+
+# Arriba -> Pin 10 (B) del P1
+LOCATE COMP "buttons[4]" SITE "J4"; 
+IOBUF PORT "buttons[4]" IO_TYPE=LVCMOS33;
+
+# Abajo -> Pin 11 (C) del P1
+LOCATE COMP "buttons[5]" SITE "K4"; 
+IOBUF PORT "buttons[5]" IO_TYPE=LVCMOS33;
+
+# Izquierda -> Pin 12 (D) del P1
+LOCATE COMP "buttons[6]" SITE "K3"; 
+IOBUF PORT "buttons[6]" IO_TYPE=LVCMOS33;
+
+# Derecha -> Pin 13 (CLK HUB75) del P1
+LOCATE COMP "buttons[7]" SITE "L4"; 
+IOBUF PORT "buttons[7]" IO_TYPE=LVCMOS33;
+
+# =========================================================
+# SALIDA SERIAL UART
+# =========================================================
+# Salida de texto hacia la PC. Asignado al Pin 14 (LAT) del puerto P1
+LOCATE COMP "uart_tx_pin" SITE "H18"; 
+IOBUF PORT "uart_tx_pin" IO_TYPE=LVCMOS33;
