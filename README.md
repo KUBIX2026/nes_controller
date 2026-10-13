@@ -8,6 +8,9 @@ En el presente repositorio se encuentran los avances producidos e información g
 ### Funcionamiento Interno del NES 
 ![Mapa NES](img/Interno_nes.png)
 
+Cada botón del control corresponde a una entrada digital del registro de desplazamiento. La consola NES envía un pulso de sincronización (latch) a 60 Hz, lo que permite registrar el estado de los botones. Luego, el registro transmite esta información en serie por el pin 3 (Q8 o Data), recibida por el pin 10. Finalmente, la consola lee los datos, identifica qué botones están presionados y utiliza esta información para ejecutar las acciones correspondientes en el juego.
+
+
 ## Protocolo de Comunicación del NES
 Aproximadamente cada 16ms (al manejar 60Hz) se repite lo siguiente: 
 
