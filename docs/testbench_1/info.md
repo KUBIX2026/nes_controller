@@ -4,3 +4,9 @@ Se realiza un testbench con el objetivo de simular la consola sin conectar la FP
 Se simularon las señales de control del controlador, obteniendo lo siguiente: 
 
 ![Resultado 1 Testbench](../../img/resultado1_testbench.png)
+
+## Detalles del Testbench
+- Límite del testbench
+- Datos usados
+- Explicación de la cant. de ciclos 
+- Identificación de botones presionados 
