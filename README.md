@@ -22,6 +22,13 @@ Sin embargo, el módulo maneja lógica 'inversa': Cuando está oprimido un botó
 
 ![Ejemplo Protocolo](img/protocolo_coms_ej.png)
 
+## Diagrama de Bloques (Traductor NES)
+
+![Diagrama de Bloques](<img/Diagrama sin título.drawio.png>) 
+
+En este diagrama se ilustra el funcionamiento del módulo perip_nes, el cual actúa como traductor entre el procesador de la FPGA y el control físico de NES.
+
+
 ## Pines del control NES
 
 ![Diagrama de los pines del control del Nes](image.png)
