@@ -1,11 +1,5 @@
 # Controlador NES 
 
-| | |
-|---|---|
-| **Estado** | En desarrollo |
-| **Lenguaje** | Verilog |
-| **FPGA / placa** | **[COMPLETAR: modelo de la FPGA]** |
-| **Herramientas** | **[COMPLETAR: Vivado / Quartus / otra]**, Icarus Verilog para simular |
 
 ## Contenido
 
@@ -151,43 +145,8 @@ Orden de los bits del byte y máscaras para el firmware en C:
 
 Ejemplo: con solo Start presionado el byte vale `0x08`, y solo la condición de Start da verdadero. El firmware completo (flancos, filtro de direcciones opuestas) está en [`verificacion_botones.md`](verificacion_botones.md).
 
-## 8. Estructura del repositorio
 
-```
-nes_controller/
-├── README.md                    Este archivo
-├── rtl/
-│   ├── nes_control.v            Máquina de control (FSM)
-│   ├── nes_datapath.v           Unidad de datos
-│   └── nes_master.v             Módulo superior
-├── sim/
-│   └── tb_nes_master.v          Testbench con un mando simulado
-├── docs/
-│   └── diagrama_flujo.md        Diagrama de flujo y de estados
-├── def_tramas.md                Definición de tramas y casos de prueba
-├── mapa_controlador_NES.md      Mapa de bits y decodificación
-├── verificacion_botones.md      Firmware: máscaras y flancos
-├── definición_comandos.md       (pendiente)
-├── img/                         Imágenes (incluye maquina_control.png)
-└── image.png                    Pines del mando
-```
-
-## 9. Simulación
-
-Requiere [Icarus Verilog](https://steveicarus.github.io/iverilog/). Desde la carpeta del repositorio:
-
-```bash
-iverilog -g2005 -o sim/nes.vvp sim/tb_nes_master.v rtl/nes_control.v rtl/nes_datapath.v rtl/nes_master.v
-vvp sim/nes.vvp
-```
-
-El testbench simula un mando, presiona distintos botones y comprueba el byte recibido y la duración de los pulsos. Si todo va bien, al final imprime:
-
-```
-=== TODO OK ===
-```
-
-## 10. Documentación adicional
+## 9. Documentación adicional
 
 | Documento | Contenido |
 |---|---|
@@ -197,13 +156,8 @@ El testbench simula un mando, presiona distintos botones y comprueba el byte rec
 | [`docs/diagrama_flujo.md`](docs/diagrama_flujo.md) | Diagrama de flujo y diagrama de estados del módulo |
 | [Diagrama original (draw.io)](img/Diagrama%20de%20Flujo-Controlador%20NES.drawio%282%29.png) | Versión anterior del diagrama de flujo |
 
-## 11. Pendientes
+.
 
-- [ ] Completar los campos marcados con **[COMPLETAR]**.
-- [ ] Documentar el registro `0x450008` ("Dato Listo").
-- [ ] Redactar `definición_comandos.md` (hoy está vacío).
-- [ ] Probar el módulo en la FPGA con un mando real.
-
-## Autores y licencia
+## Autores
 
 **[Juana Valentina Saavedra-Manuel Alejandro Velasco Marinez]** 
