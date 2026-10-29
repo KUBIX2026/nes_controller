@@ -80,7 +80,7 @@ Cada **16,6 ms** (60 Hz) se repite esta secuencia:
 
 ## 6. Diseño interno
 
-El módulo [`nes_controller.v`](docs/testbench_1/nes_controller.v) contiene una máquina de estados que genera LATCH y CLOCK, lee DATA y entrega el byte de botones. El parámetro `CLK_FREQ` (25 MHz en la Colorlight i9) debe coincidir con el reloj de la FPGA. De él se calculan todos los tiempos.
+El módulo [`nes_controller.v`](docs/testbench_1/nes_controller.v) contiene una máquina de estados que genera LATCH y CLOCK, lee DATA y entrega el byte de botones. 
 
 ### 6.1 Diagrama de bloques
 
@@ -94,8 +94,8 @@ El módulo [`nes_controller.v`](docs/testbench_1/nes_controller.v) contiene una 
 | `latch` (`nes_latch`) | Salida | Línea LATCH hacia el mando |
 | `clock` (`nes_clk`) | Salida | Línea CLOCK hacia el mando |
 | `buttons[7:0]` | Salida | Botones: `1` = presionado |
-| `start_read` | Entrada | Pendiente de implementar |
-| `ready` | Salida | Pendiente de implementar |
+| `start_read` | Entrada |  |
+| `ready` | Salida |  |
 
 ### 6.2 Diagrama de flujo
 
