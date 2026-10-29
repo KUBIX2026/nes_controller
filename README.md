@@ -1,5 +1,5 @@
 # Controlador NES 
-
+En el presente repositorio se encuentran los avances producidos e información general para el desarrollo y conexión del períferico mando NES en la consola KUBIX.
 
 ## Contenido
 
