@@ -8,7 +8,7 @@ flowchart TD
 
     subgraph Capa Driver Firmware C
         READ[Muestreo del Registro]
-        SANITY{Sanity Check de Rango}
+        SANITY{Revisar si el valor es 0xFF}
         MASK[Enmascaramiento Bitwise AND]
         EDGE[Calculadora de Flancos]
         SANITY_DIR{Filtro de Exclusión Mutua}
@@ -19,9 +19,8 @@ flowchart TD
     end
 
     CSR --> READ --> SANITY
-    SANITY -->|Valor 0x00| IDLE[Estado Reposo / Mando Desconectado]
     SANITY -->|Valor 0xFF| ERR[Alerta: Cortocircuito a GND]
-    SANITY -->|0x01 a 0xFE| MASK
+    SANITY -->|Cualquier otro valor| MASK
     MASK --> EDGE --> SANITY_DIR
     SANITY_DIR --> EVENT
 ```
@@ -105,40 +104,41 @@ flowchart TD
 ```c
 #include <stdint.h>
 
-#define NES_CSR_ADDR (*(volatile uint8_t*)0x450000)
+#define NES_PORT_ADDR 0x450000
+#define IO_NES        (*((volatile uint32_t *)NES_PORT_ADDR))
 
-#define MASK_A      0x01
-#define MASK_B      0x02
-#define MASK_SELECT 0x04
-#define MASK_START  0x08
-#define MASK_UP     0x10
-#define MASK_DOWN   0x20
-#define MASK_LEFT   0x40
-#define MASK_RIGHT  0x80
+#define NES_MASK_A      0x01
+#define NES_MASK_B      0x02
+#define NES_MASK_SELECT 0x04
+#define NES_MASK_START  0x08
+#define NES_MASK_UP     0x10
+#define NES_MASK_DOWN   0x20
+#define NES_MASK_LEFT   0x40
+#define NES_MASK_RIGHT  0x80
 
 typedef struct {
-    uint8_t current;
-    uint8_t pressed;
-    uint8_t released;
-    uint8_t held;
+    uint8_t current;   // botones presionados ahora
+    uint8_t pressed;   // recién presionados
+    uint8_t released;  // recién soltados
+    uint8_t held;      // siguen presionados
 } NES_Controller;
 
 static uint8_t previous_frame = 0;
 
 void nes_update(NES_Controller *pad) {
-    uint8_t raw = NES_CSR_ADDR;
+    uint8_t raw = (uint8_t)(IO_NES & 0xFF);
 
-    // Sanity Check de Rango
+    // 0xFF = los 8 botones a la vez: no pasa en un mando real.
+    // Se toma como cortocircuito a GND y se ignora.
     if (raw == 0xFF) {
-        pad->current = 0;
-        return;
+        raw = 0;
     }
 
-    // Sanitización de direcciones opuestas
-    if ((raw & MASK_UP) && (raw & MASK_DOWN))    raw &= ~(MASK_UP | MASK_DOWN);
-    if ((raw & MASK_LEFT) && (raw & MASK_RIGHT)) raw &= ~(MASK_LEFT | MASK_RIGHT);
+    // Dos direcciones opuestas a la vez tampoco son posibles: se ignoran
+    if ((raw & NES_MASK_UP) && (raw & NES_MASK_DOWN))    raw &= ~(NES_MASK_UP | NES_MASK_DOWN);
+    if ((raw & NES_MASK_LEFT) && (raw & NES_MASK_RIGHT)) raw &= ~(NES_MASK_LEFT | NES_MASK_RIGHT);
 
-    // Cálculo de flancos y actualización de estado
+    // Cálculo de flancos
     pad->current  = raw;
     pad->pressed  = raw & ~previous_frame;
     pad->released = ~raw & previous_frame;
