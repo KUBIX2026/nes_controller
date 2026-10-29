@@ -37,7 +37,7 @@ El mando envía **un byte** (8 botones), bit a bit, por la línea DATA.
 Pines del conector del mando
 
 | Pin del mando | Señal | Dirección (desde la FPGA) |
-|:-:|---|---|:-:|
+|:-:|---|---|
 | 1 | GND | Tierra |
 | 2 | `nes_clk` (CLOCK) | Salida |
 | 3 | `nes_latch` (LATCH) | Salida |
