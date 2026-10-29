@@ -1,5 +1,6 @@
-# Controlador NES 
-En el presente repositorio se encuentran los avances producidos e información general para el desarrollo y conexión del períferico mando NES en la consola KUBIX.
+# Controlador NES
+
+En el presente repositorio se encuentran los avances producidos y la información general para el desarrollo y la conexión del periférico mando NES en la consola KUBIX.
 
 ## Contenido
 
@@ -10,10 +11,7 @@ En el presente repositorio se encuentran los avances producidos e información g
 5. [Especificaciones eléctricas](#5-especificaciones-eléctricas)
 6. [Diseño interno: máquina de control y datapath](#6-diseño-interno-máquina-de-control-y-datapath)
 7. [Interfaz con la CPU](#7-interfaz-con-la-cpu)
-8. [Estructura del repositorio](#8-estructura-del-repositorio)
-9. [Simulación](#9-simulación)
-10. [Documentación adicional](#10-documentación-adicional)
-11. [Pendientes](#11-pendientes)
+8. [Documentación adicional](#8-documentación-adicional)
 
 ---
 
@@ -47,7 +45,7 @@ El mando transmite **un byte** (8 botones), bit a bit, por la línea DATA. Cada 
 
 ![Diagrama de los pines del control del NES](image.png)
 
-> **Advertencia sobre voltajes:** el mando original funciona a 5 V. Muchas FPGAs aceptan como máximo 3,3 V en sus pines. Antes de conectar DATA, verifica que el pin de tu FPGA tolere 5 V; si no, usa un divisor de voltaje o un conversor de niveles. 
+> **Advertencia sobre voltajes:** el mando original funciona a 5 V. Muchas FPGAs aceptan como máximo 3,3 V en sus pines. Antes de conectar DATA, verifica que el pin de tu FPGA tolere 5 V; si no, usa un divisor de voltaje o un conversor de niveles.
 
 ## 3. Cómo funciona el mando
 
@@ -86,7 +84,7 @@ Aproximadamente cada **16,6 ms** (a 60 Hz) se repite esta secuencia:
 
 ## 6. Diseño interno: máquina de control y datapath
 
-El módulo `nes_master` se divide en dos bloques:
+El módulo `nes_master` se compone de tres archivos: dos bloques (la máquina de control y el datapath) y un módulo superior que los une.
 
 | Bloque | Archivo | Función |
 |---|---|---|
@@ -121,14 +119,14 @@ stateDiagram-v2
 
 El diagrama de flujo completo y la tabla de salidas están en [`docs/diagrama_flujo.md`](docs/diagrama_flujo.md).
 
-**Parámetro importante:** `CLK_FREQ_HZ` (por defecto 50 MHz) debe coincidir con el reloj de tu FPGA. De él se calculan todos los tiempos.
+**Parámetro importante:** `CLK_FREQ_HZ` (por defecto 50 MHz) debe coincidir con el reloj de la FPGA. De él se calculan todos los tiempos.
 
 ## 7. Interfaz con la CPU
 
 | Dirección | Registro | Acceso | Descripción |
 |---|---|---|---|
 | `0x450000` | Botones | Lectura | Un byte con lógica activa en alto: `1` = botón presionado |
-| `0x450008` | Dato Listo | Lectura | Indica que hay un byte nuevo. |
+| `0x450008` | Dato Listo | Lectura | Indica que hay un byte nuevo |
 
 Orden de los bits del byte y máscaras para el firmware en C:
 
@@ -145,8 +143,7 @@ Orden de los bits del byte y máscaras para el firmware en C:
 
 Ejemplo: con solo Start presionado el byte vale `0x08`, y solo la condición de Start da verdadero. El firmware completo (flancos, filtro de direcciones opuestas) está en [`verificacion_botones.md`](verificacion_botones.md).
 
-
-## 9. Documentación adicional
+## 8. Documentación adicional
 
 | Documento | Contenido |
 |---|---|
@@ -156,8 +153,7 @@ Ejemplo: con solo Start presionado el byte vale `0x08`, y solo la condición de 
 | [`docs/diagrama_flujo.md`](docs/diagrama_flujo.md) | Diagrama de flujo y diagrama de estados del módulo |
 | [Diagrama original (draw.io)](img/Diagrama%20de%20Flujo-Controlador%20NES.drawio%282%29.png) | Versión anterior del diagrama de flujo |
 
-.
-
 ## Autores
 
-**[Juana Valentina Saavedra-Manuel Alejandro Velasco Marinez]** 
+- Juana Valentina Saavedra
+- Manuel Alejandro Velasco Marinez
