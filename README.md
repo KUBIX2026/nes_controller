@@ -51,7 +51,7 @@ Los pines 5 y 6 del mando no están conectados.
 
 ## 3. Cómo funciona el mando
 
-Cada botón del control corresponde a una entrada digital del registro de desplazamiento. La consola NES envía un pulso de sincronización (latch) a 60 Hz, lo que permite registrar el estado de los botones. Luego, el registro transmite esta información en serie por el pin 3 (Q8 o Data), recibida por el pin 10. Finalmente, la consola lee los datos, identifica qué botones están presionados y utiliza esta información para ejecutar las acciones correspondientes en el juego.
+Cada botón del control corresponde a una entrada digital del registro de desplazamiento. La consola NES envía un pulso de sincronización (latch) a 60 Hz, que entra por el pin 9 del chip y le permite registrar el estado de los 8 botones. Luego, cada pulso de reloj (clock), que entra por el pin 10, hace que el registro transmita esta información en serie, un botón por pulso, por el pin 3 (Q8 o Data). Finalmente, la consola lee los datos, identifica qué botones están presionados y utiliza esta información para ejecutar las acciones correspondientes en el juego.
 
 ![Esquema interno del mando](img/Interno_nes.png)
 
