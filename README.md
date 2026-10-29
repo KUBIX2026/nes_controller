@@ -9,7 +9,7 @@ En el presente repositorio se encuentran los avances producidos y la informació
 3. [Cómo funciona el mando](#3-cómo-funciona-el-mando)
 4. [Protocolo de comunicación](#4-protocolo-de-comunicación)
 5. [Especificaciones eléctricas](#5-especificaciones-eléctricas)
-6. [Diseño interno: máquina de control y datapath](#6-diseño-interno-máquina-de-control-y-datapath)
+6. [Diseño interno](#6-diseño-interno)
 7. [Interfaz con la CPU](#7-interfaz-con-la-cpu)
 8. [Documentación adicional](#8-documentación-adicional)
 
@@ -17,141 +17,148 @@ En el presente repositorio se encuentran los avances producidos y la informació
 
 ## 1. Visión general
 
-El protocolo entre el SoC y el mando es un **bus serie síncrono y unidireccional de lectura**, con un modelo maestro-esclavo:
+El mando se comunica con el SoC por un bus serie síncrono de solo lectura, con un modelo maestro-esclavo:
 
-| Rol | Quién es | Qué hace |
-|---|---|---|
-| **Master (maestro)** | El módulo de la FPGA / SoC | Genera LATCH y CLOCK, fija los tiempos y lee DATA |
-| **Slave (esclavo)** | El mando físico de la NES | Reacciona a cada pulso que recibe del master |
+- **Master (maestro):** el módulo de la FPGA. Genera LATCH y CLOCK, y lee DATA.
+- **Slave (esclavo):** el mando físico de la NES. Responde a cada pulso que recibe.
 
 ```mermaid
 flowchart LR
-    MANDO["Mando NES<br/>(registro 4021N)"] -- "DATA" --> FPGA["Módulo nes_master<br/>(FPGA)"]
+    MANDO["Mando NES"] -- "DATA" --> FPGA["Módulo nes_master<br/>(FPGA)"]
     FPGA -- "LATCH, CLOCK" --> MANDO
-    FPGA -- "byte de botones<br/>0x450000" --> CPU["CPU FemtoRV32<br/>(firmware en C)"]
+    FPGA -- "byte de botones<br/>0x450000" --> CPU["CPU FemtoRV32"]
 ```
 
-El mando transmite **un byte** (8 botones), bit a bit, por la línea DATA. Cada botón ocupa un bit fijo del byte (ver [sección 7](#7-interfaz-con-la-cpu)).
+El mando envía **un byte** (8 botones), bit a bit, por la línea DATA.
 
 ## 2. Conexión física
 
-| Señal | Dirección (vista desde la FPGA) | Descripción |
+| Señal | Dirección (desde la FPGA) | Descripción |
 |---|---|---|
-| `nes_latch` | Salida | Pulso que captura el estado de los botones |
-| `nes_clk` | Salida | Pulsos que desplazan los bits hacia DATA |
-| `nes_data` | Entrada | Estado de un botón por pulso (lógica negativa) |
-| VCC | Alimentación | 5 V |
-| GND | Tierra | 0 V |
+| `nes_latch` | Salida | Captura el estado de los botones |
+| `nes_clk` | Salida | Desplaza los bits hacia DATA |
+| `nes_data` | Entrada | Un botón por pulso (lógica negativa) |
+| VCC / GND | Alimentación | 5 V / 0 V |
 
-![Diagrama de los pines del control del NES](image.png)
+![Pines del control del NES](image.png)
 
-> **Advertencia sobre voltajes:** el mando original funciona a 5 V. Muchas FPGAs aceptan como máximo 3,3 V en sus pines. Antes de conectar DATA, verifica que el pin de tu FPGA tolere 5 V; si no, usa un divisor de voltaje o un conversor de niveles.
+> **Ojo con el voltaje:** el mando funciona a 5 V y muchas FPGAs aceptan máximo 3,3 V. Verifica que el pin de DATA tolere 5 V; si no, usa un divisor de voltaje o un conversor de niveles.
 
 ## 3. Cómo funciona el mando
 
-El mando contiene un **registro de desplazamiento 4021N** (entrada en paralelo, salida en serie). Los 8 botones están conectados a sus 8 entradas en paralelo. Con un pulso en LATCH el chip copia el estado de todos los botones a la vez. Después, cada pulso de CLOCK desplaza el contenido y hace aparecer el siguiente botón en la línea DATA.
-
-![Esquema interno del mando (4021N)](img/4021N.png)
+Dentro del mando hay un **registro de desplazamiento** que recibe los 8 botones a la vez y los entrega uno por uno. Con un pulso en LATCH copia el estado de todos los botones. Cada pulso de CLOCK hace aparecer el siguiente botón en DATA.
 
 ## 4. Protocolo de comunicación
 
-Aproximadamente cada **16,6 ms** (a 60 Hz) se repite esta secuencia:
+Cada **16,6 ms** (60 Hz) se repite esta secuencia:
 
 ![Protocolo de comunicaciones](img/protocolo_comunicaciones.png)
 
-1. El master sube **LATCH** durante **12 µs**. El mando "congela" el estado de los botones.
-2. El master baja LATCH. En ese momento la línea DATA muestra el primer bit: el botón **A**.
-3. El master envía **7 pulsos de CLOCK** (6 µs en alto y 6 µs en bajo). Después de cada pulso, DATA muestra el siguiente botón.
-4. Se leyeron 8 bits en total. El master espera hasta completar los 16,6 ms y repite.
+1. El master sube **LATCH** durante **12 µs**. El mando "congela" los botones.
+2. Al bajar LATCH, DATA muestra el primer bit: el botón **A**.
+3. El master envía **7 pulsos de CLOCK** (6 µs en alto y 6 µs en bajo). Cada pulso muestra el siguiente botón.
+4. Con los 8 bits leídos, espera hasta completar los 16,6 ms y repite.
 
-**Lógica negativa:** en la línea DATA un botón presionado vale `0` y uno suelto vale `1`. Por eso, al llegar a la FPGA, cada bit pasa por una compuerta NOT. Ejemplo con Start presionado:
+**Lógica negativa:** un botón presionado vale `0` y uno suelto vale `1`. Por eso cada bit pasa por una compuerta NOT al llegar a la FPGA. Ejemplo con Start presionado:
 
-![Ejemplo del protocolo con Start presionado](img/protocolo_coms_ej.png)
-
-| Parámetro | Valor |
-|---|---|
-| Ancho del pulso LATCH | 12 µs |
-| CLOCK en alto / en bajo | 6 µs / 6 µs |
-| Periodo entre lecturas | 16,6 ms (60 Hz) |
-| Pulsos de CLOCK por lectura | 7 |
+![Ejemplo con Start presionado](img/protocolo_coms_ej.png)
 
 ## 5. Especificaciones eléctricas
 
 - Comunicación serie, síncrona y unidireccional.
-- La FPGA controla las líneas LATCH y CLOCK, y recibe DATA.
-- Niveles lógicos TTL / LVTTL (5 V o 3,3 V): nivel bajo con $V_{IL} < 0{,}8\ \text{V}$ y nivel alto con $V_{IH} > 2{,}0\ \text{V}$.
-- DATA usa lógica negativa (activa en bajo).
+- La FPGA controla LATCH y CLOCK, y recibe DATA.
+- Niveles TTL / LVTTL (5 V o 3,3 V): nivel bajo con $V_{IL} < 0{,}8\ \text{V}$ y nivel alto con $V_{IH} > 2{,}0\ \text{V}$.
 
-## 6. Diseño interno: máquina de control y datapath
+## 6. Diseño interno
 
-El módulo `nes_master` se compone de tres archivos: dos bloques (la máquina de control y el datapath) y un módulo superior que los une.
+El módulo `nes_master` está formado por una **máquina de control** ([`nes_control.v`](rtl/nes_control.v)), que decide el orden de los pasos, y un **datapath** ([`nes_datapath.v`](rtl/nes_datapath.v)), que cuenta tiempo, guarda los bits y aplica el NOT. [`nes_master.v`](rtl/nes_master.v) los une.
 
-| Bloque | Archivo | Función |
-|---|---|---|
-| **Máquina de control** | [`rtl/nes_control.v`](rtl/nes_control.v) | FSM que decide el orden de los pasos. No guarda datos ni cuenta tiempo. |
-| **Datapath (unidad de datos)** | [`rtl/nes_datapath.v`](rtl/nes_datapath.v) | Cuenta tiempo, guarda los bits y aplica el NOT. Obedece a la máquina de control. |
-| **Módulo superior** | [`rtl/nes_master.v`](rtl/nes_master.v) | Une ambos bloques y registra las salidas hacia el mando. |
+### 6.1 Diagrama de caja negra
+
+![Caja negra de nes_master](img/caja_negra.png)
+
+### 6.2 Diagrama de flujo
+
+```mermaid
+flowchart TD
+    INICIO(["Inicio de ciclo de lectura (cada 16,6 ms)"])
+
+    subgraph F1["Fase 1: Captura de botones (LATCH)"]
+        direction TB
+        A1[/"LATCH = 1"/] --> A2["Esperar 12 µs"]
+        A2 --> A3[/"LATCH = 0"/]
+    end
+
+    subgraph F2["Fase 2: Lectura serial de 8 bits"]
+        direction TB
+        B1[/"Leer DATA y guardar en registro_temp[0] (botón A)"/] --> B2{{"i = 1"}}
+        B2 --> B3{"¿i ≤ 7?"}
+        B3 -- "Sí" --> B4[/"CLOCK = 1"/]
+        B4 --> B5["Esperar 6 µs"]
+        B5 --> B6[/"CLOCK = 0"/]
+        B6 --> B7["Esperar 6 µs"]
+        B7 --> B8[/"Leer DATA y guardar en registro_temp[i]"/]
+        B8 --> B9["i = i + 1"]
+        B9 --> B3
+    end
+
+    subgraph F3["Fase 3: Entrega a la CPU"]
+        direction TB
+        C1["byte = ~registro_temp (NOT)"] --> C2[/"Escribir byte en 0x450000"/]
+        C2 --> C3[/"Activar Dato Listo en 0x450008"/]
+    end
+
+    ESPERA["Esperar hasta completar 16,6 ms"]
+
+    INICIO --> A1
+    A3 --> B1
+    B3 -- "No" --> C1
+    C3 --> ESPERA
+    ESPERA --> INICIO
+```
+
+### 6.3 Máquina de control
 
 ![Máquina de control del lector NES](img/maquina_control.png)
 
-El mismo diagrama en texto (GitHub lo dibuja solo):
-
-```mermaid
-stateDiagram-v2
-    [*] --> IDLE: reset
-    IDLE --> LATCH: pasaron 16,6 ms
-    LATCH --> WAIT: pasaron 12 µs
-    WAIT --> CAPTURE: pasaron 6 µs
-    CAPTURE --> CLK_HI: faltan bits por leer
-    CAPTURE --> DONE: se leyó el último bit
-    CLK_HI --> WAIT: pasaron 6 µs
-    DONE --> IDLE: byte entregado
-```
-
 | Estado | Qué hace |
 |---|---|
-| `IDLE` | Espera hasta el siguiente ciclo de lectura |
+| `IDLE` | Espera hasta el siguiente ciclo |
 | `LATCH` | Mantiene LATCH en alto 12 µs |
 | `WAIT` | CLOCK en bajo, espera 6 µs |
 | `CAPTURE` | Guarda el bit que hay en DATA |
 | `CLK_HI` | Mantiene CLOCK en alto 6 µs |
 | `DONE` | Entrega el byte a la CPU y activa "Dato Listo" |
 
-El diagrama de flujo completo y la tabla de salidas están en [`docs/diagrama_flujo.md`](docs/diagrama_flujo.md).
-
-**Parámetro importante:** `CLK_FREQ_HZ` (por defecto 50 MHz) debe coincidir con el reloj de la FPGA. De él se calculan todos los tiempos.
+> El parámetro `CLK_FREQ_HZ` (50 MHz por defecto) debe coincidir con el reloj de la FPGA. De él se calculan todos los tiempos.
 
 ## 7. Interfaz con la CPU
 
-| Dirección | Registro | Acceso | Descripción |
-|---|---|---|---|
-| `0x450000` | Botones | Lectura | Un byte con lógica activa en alto: `1` = botón presionado |
-| `0x450008` | Dato Listo | Lectura | Indica que hay un byte nuevo |
+| Dirección | Registro | Descripción |
+|---|---|---|
+| `0x450000` | Botones | Un byte: `1` = botón presionado |
+| `0x450008` | Dato Listo | Indica que hay un byte nuevo |
 
-Orden de los bits del byte y máscaras para el firmware en C:
+| Botón | Bit | Máscara |
+|---|:-:|:-:|
+| A | 0 | `0x01` |
+| B | 1 | `0x02` |
+| Select | 2 | `0x04` |
+| Start | 3 | `0x08` |
+| Arriba | 4 | `0x10` |
+| Abajo | 5 | `0x20` |
+| Izquierda | 6 | `0x40` |
+| Derecha | 7 | `0x80` |
 
-| Botón | Bit | Máscara | Condición en C |
-|---|:-:|:-:|---|
-| A | 0 | `0x01` | `(data & 0x01) != 0` |
-| B | 1 | `0x02` | `(data & 0x02) != 0` |
-| Select | 2 | `0x04` | `(data & 0x04) != 0` |
-| Start | 3 | `0x08` | `(data & 0x08) != 0` |
-| Arriba | 4 | `0x10` | `(data & 0x10) != 0` |
-| Abajo | 5 | `0x20` | `(data & 0x20) != 0` |
-| Izquierda | 6 | `0x40` | `(data & 0x40) != 0` |
-| Derecha | 7 | `0x80` | `(data & 0x80) != 0` |
-
-Ejemplo: con solo Start presionado el byte vale `0x08`, y solo la condición de Start da verdadero. El firmware completo (flancos, filtro de direcciones opuestas) está en [`verificacion_botones.md`](verificacion_botones.md).
+Ejemplo: con solo Start presionado el byte vale `0x08`. En C, un botón está presionado si `(data & máscara) != 0`.
 
 ## 8. Documentación adicional
 
 | Documento | Contenido |
 |---|---|
-| [`def_tramas.md`](def_tramas.md) | Qué es una trama, polaridad lógica, trama de reposo y desconexión, vectores de prueba |
-| [`mapa_controlador_NES.md`](mapa_controlador_NES.md) | Orden de salida de los bits y constantes de enmascaramiento en C |
-| [`verificacion_botones.md`](verificacion_botones.md) | Enmascaramiento, detección de flancos y filtro de direcciones opuestas |
-| [`docs/diagrama_flujo.md`](docs/diagrama_flujo.md) | Diagrama de flujo y diagrama de estados del módulo |
-| [Diagrama original (draw.io)](img/Diagrama%20de%20Flujo-Controlador%20NES.drawio%282%29.png) | Versión anterior del diagrama de flujo |
+| [`def_tramas.md`](def_tramas.md) | Tramas, polaridad lógica y vectores de prueba |
+| [`mapa_controlador_NES.md`](mapa_controlador_NES.md) | Orden de los bits y máscaras en C |
+| [`verificacion_botones.md`](verificacion_botones.md) | Enmascaramiento, flancos y filtro de direcciones opuestas |
 
 ## Autores
 
