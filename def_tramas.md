@@ -2,7 +2,7 @@
 ## ¿Qué es una trama de datos?
 Unidad de información digital estructurada que se transmite a través de un canal físico siguiendo un orden temporal estricto. En el mando de la consola NES, la trama tiene un tamaño fijo de 8 bits (1 Byte), cada uno de los bits representa el estado de un botón específico (cuatro de la cruceta, Select, Start, A y B).
 
-El circuito integrado del mando (un registro de desplazamiento CD4021B) recibe en paralelo el estado de los 8 botones cuando la FPGA envía el pulso de captura Latch. Luego,, el mando transmite dicho estado bit por bit de manera serial a través de Data, sincronizado por los pulsos de reloj enviados desde la FPGA por la línea nes_clk.
+El circuito integrado del mando (un registro de desplazamiento CD4021B) recibe en paralelo el estado de los 8 botones cuando la FPGA envía el pulso de captura Latch. Luego, el mando transmite dicho estado bit por bit de manera serial a través de Data, sincronizado por los pulsos de reloj enviados desde la FPGA por la línea nes_clk.
 
 ---
 
@@ -38,7 +38,7 @@ sequenceDiagram
     FPGA->>Latch: Vuelve a bajo (Latch = 0) para habilitar el desplazamiento serial
     Note over FPGA,Data: El Bit 0 (Botón A) queda disponible inmediatamente en nes_data
     
-    loop Ciclo de Lectura de 8 Bits
+    loop 7 pulsos de reloj (botones B a Derecha)
         FPGA->>Clock: Genera un pulso de reloj
         Clock->>Data: Desplaza el siguiente bit a la línea nes_data
         FPGA->>FPGA: Muestra y almacena el bit en el registro interno
@@ -55,7 +55,7 @@ Para integrar esta comunicación en un sistema con procesador (por ejemplo, RISC
 
 Cada botón del mando funciona como un interruptor conectado a tierra (0V). Cuando un botón no se presiona, una resistencia pull-up eleva la línea a +5V (1 lógico). Cuando se presiona, la línea cae a 0V (0 lógico). Esto significa que la trama viaja en el cable con lógica activa en bajo (Active-Low).
 
-Para simplificar el procesamiento en software y evitar que la CPU gaste ciclos invirtiendo los bits, el módulo RTL perip_nes.v de la FPGA incorpora una compuerta NOT por hardware. Así, los datos depositados en el registro CSR 0x450000 quedan en lógica activa en alto (Active-High), donde 1 representa un botón presionado.
+Para simplificar el procesamiento en software y evitar que la CPU gaste ciclos invirtiendo los bits, el módulo `nes_controller.v` de la FPGA invierte cada bit al leerlo (`~nes_data`), es decir, aplica una compuerta NOT por hardware. Así, los datos depositados en el registro CSR 0x450000 quedan en lógica activa en alto (Active-High), donde 1 representa un botón presionado.
 
 ### Explicación del Diagrama de Flujo de la Señal
 Este diagrama demuestra la ruta física y lógica de la trama de datos desde que el usuario interactúa con el control hasta que la información llega al firmware del procesador.
@@ -71,12 +71,12 @@ flowchart LR
     end
 
     subgraph Módulo RTL FPGA
-        GPIO --> REG[Registro shift_reg]
-        REG --> NOT[Inversor NOT por Hardware ~]
+        GPIO --> NOT[Inversor NOT por Hardware ~]
+        NOT --> REG[Registro shift_reg]
     end
 
     subgraph Bus CSR y Procesador
-        NOT -->|Active-High: 1=Presionado, 0=Reposo| CSR[Registro CSR 0x450000]
+        REG -->|Active-High: 1=Presionado, 0=Reposo| CSR[Registro CSR 0x450000]
         CSR --> CPU[Firmware CPU RISC-V]
     end
 ```
@@ -94,7 +94,7 @@ Las siguientes dos tablas explican cómo se traducen los niveles de voltaje del 
 | Contacto del Mando | Electrónico Físico | Circuito Eléctrico | Abierto (+5V) / Cerrado (0V) |
 | Salida CD4021B | Comunicación Serie | Active-Low | 1 = Reposo / 0 = Presionado |
 | Entrada GPIO FPGA | Interfaz Digital | Active-Low | 1 = Reposo / 0 = Presionado |
-| Bloque Verilog | Procesamiento RTL | Inversión NOT | ~shift_reg en asignación de bus  |
+| Bloque Verilog | Procesamiento RTL | Inversión NOT | ~nes_data al guardar cada bit  |
 | Registro Memoria | Bus CSR (0x450000) | Active-High | 1 = Presionado / 0 = Reposo  |
 
 ---
@@ -132,7 +132,7 @@ stateDiagram-v2
 
 Si el mando es retirado del puerto, la línea nes_data queda flotando. La FPGA cuenta con una resistencia pull-up interna activada en la entrada GPIO para evitar ruido eléctrico. 
 
-Esta resistencia fuerza la línea a +5V, generando la misma trama `11111111` que un mando en reposo. Al invertirse en hardware, el procesador lee `0x00` . De esta forma se evita que una desconexión genere entradas erráticas o falsos disparos en el sistema.
+Esta resistencia fuerza la línea a nivel alto (1), generando la misma trama `11111111` que un mando en reposo. Al invertirse en hardware, el procesador lee `0x00` . De esta forma se evita que una desconexión genere entradas erráticas o falsos disparos en el sistema.
 
 ### Explicación del Diagrama de Decisiones del Puerto
 Este flujo de decisiones ilustra cómo el circuito reacciona ante la presencia o ausencia del mando físico para formar la trama final recibida por la CPU.
@@ -146,7 +146,7 @@ flowchart TD
     D -->|Sí| E[Bits de botones presionados van en 0 al cable]
     D -->|No| F[Todos los bits van en 1 al cable]
     
-    B -->|No| G[Resistencia Pull-up de FPGA fija la línea a 5V]
+    B -->|No| G[Resistencia Pull-up de FPGA fija la línea en nivel alto]
     G --> F
     
     E --> H[Inversión NOT en FPGA: Entrega código de botones a CPU]
@@ -182,13 +182,13 @@ Las siguientes tablas contienen vectores de prueba esenciales para verificar med
 
 | Combinación de Entrada | Línea Física (nes_data) | Registro CPU Binario (d_out)  | Lectura CPU Hex (0x450000) | Máscaras de Bits Aplicadas |
 | :--- | :---: | :---: | :---: | :--- |
-| Botón A + Botón B | 11111100 | 00000011 | 0x03 | NES_BTN_A \| NES_BTN_B |
-| Botón A + Botón Start | 11110110 | 00001001 | 0x09 | NES_BTN_A \| NES_BTN_START |
-| Botón B + Botón Select | 11111001 | 00000110 | 0x06 | NES_BTN_B \| NES_BTN_SELECT |
-| Diagonal Arriba + Derecha | 01101111 | 10010000 | 0x90 | NES_BTN_UP \| NES_BTN_RIGHT |
-| Diagonal Arriba + Izquierda | 10101111 | 01010000 | 0x50 | NES_BTN_UP \| NES_BTN_LEFT |
-| Diagonal Abajo + Derecha | 01011111 | 10100000 | 0xA0 | NES_BTN_DOWN \| NES_BTN_RIGHT |
-| Diagonal Abajo + Izquierda | 10011111 | 01100000 | 0x60 | NES_BTN_DOWN \| NES_BTN_LEFT |
+| Botón A + Botón B | 11111100 | 00000011 | 0x03 | NES_MASK_A \| NES_MASK_B |
+| Botón A + Botón Start | 11110110 | 00001001 | 0x09 | NES_MASK_A \| NES_MASK_START |
+| Botón B + Botón Select | 11111001 | 00000110 | 0x06 | NES_MASK_B \| NES_MASK_SELECT |
+| Diagonal Arriba + Derecha | 01101111 | 10010000 | 0x90 | NES_MASK_UP \| NES_MASK_RIGHT |
+| Diagonal Arriba + Izquierda | 10101111 | 01010000 | 0x50 | NES_MASK_UP \| NES_MASK_LEFT |
+| Diagonal Abajo + Derecha | 01011111 | 10100000 | 0xA0 | NES_MASK_DOWN \| NES_MASK_RIGHT |
+| Diagonal Abajo + Izquierda | 10011111 | 01100000 | 0x60 | NES_MASK_DOWN \| NES_MASK_LEFT |
 | Cuatro Botones de Acción | 11110000 | 00001111 | 0x0F | A \| B \| SELECT \| START |
 | Todos los Botones Oprimidos | 00000000 | 11111111 | 0xFF | Todos los bits en 1 |
 
