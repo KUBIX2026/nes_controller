@@ -119,10 +119,10 @@ El módulo [`nes_controller.v`](docs/testbench_1/nes_controller.v) contiene una 
 
 Este diagrama muestra el camino que recorre una pulsación, desde que el jugador toca un botón hasta que el personaje se mueve en pantalla. Nuestro módulo, `perip_nes`, es la caja verde. Es el nombre del periférico dentro del SoC y por dentro usa `nes_controller`.
 
-Dentro de la FPGA hay un pequeño sistema (SoC) donde viven la CPU y varios periféricos. Todos se comunican por un mismo "pasillo" compartido, el **Bus CSR**. Cada periférico tiene su propia dirección, como una casa en una calle. La del control NES es `0x450000`.
+Dentro de la FPGA hay un pequeño sistema (SoC) donde viven la CPU y varios periféricos. Todos se comunican por un mismo bus compartido, el **Bus CSR**. Cada periférico tiene su propia dirección. La del control NES es `0x450000`.
 
 1. **El mando y `perip_nes` se comunican.** `perip_nes` envía al mando las señales `LATCH` y `CLOCK`, y el mando responde por `DATA` con el estado de cada botón, uno por uno.
-2. **`perip_nes` arma un byte.** Junta los 8 botones en un solo número, donde cada bit es un botón (`1` = presionado). Esto se repite unas 60 veces por segundo.
+2. **`perip_nes` arma un byte.** Junta los 8 botones en un solo número, donde cada bit es un botón (`1` = presionado). 
 3. **La CPU lee ese byte por el bus.** El firmware en C lee los botones en `0x450000`.
 4. **La CPU decide qué hacer y dibuja.** Según los botones, el juego mueve al personaje y escribe el nuevo dibujo en el Display (`0x480000`).
 5. **El Display lo muestra en el Panel LED.**
