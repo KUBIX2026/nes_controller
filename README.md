@@ -32,17 +32,17 @@ flowchart LR
 
 El mando envía **un byte** (8 botones), bit a bit, por la línea DATA.
 
-## 2. Conexión física
+## 2. Pines del mando
 
-Pines del conector del mando y su conexión en la FPGA (Colorlight i9, conector P1, según [`colorlight.lpf`](docs/testbench_1/colorlight.lpf)):
+Pines del conector del mando
 
-| Pin del mando | Señal | Dirección (desde la FPGA) | Pin de la FPGA |
+| Pin del mando | Señal | Dirección (desde la FPGA) |
 |:-:|---|---|:-:|
-| 1 | GND | Tierra | - |
-| 2 | `nes_clk` (CLOCK) | Salida | G3 |
-| 3 | `nes_latch` (LATCH) | Salida | F1 |
-| 4 | `nes_data` (DATA) | Entrada | F3 |
-| 7 | VCC | Alimentación (5 V) | - |
+| 1 | GND | Tierra |
+| 2 | `nes_clk` (CLOCK) | Salida |
+| 3 | `nes_latch` (LATCH) | Salida |
+| 4 | `nes_data` (DATA) | Entrada | 
+| 7 | VCC | Alimentación (5 V) |
 
 Los pines 5 y 6 del mando no están conectados.
 
