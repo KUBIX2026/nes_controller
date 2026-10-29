@@ -46,7 +46,6 @@ Pines del conector del mando y su conexión en la FPGA (Colorlight i9, conector 
 
 Los pines 5 y 6 del mando no están conectados.
 
-![Pines del control del NES](image.png)
 
 > **Ojo con el voltaje:** el mando funciona a 5 V y los pines de la FPGA aceptan máximo 3,3 V. 
 
