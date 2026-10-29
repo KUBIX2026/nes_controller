@@ -149,7 +149,7 @@ El control se usa en varios momentos del juego, como se ve en el [diagrama gener
 | Izquierda | 6 | `0x40` |
 | Derecha | 7 | `0x80` |
 
-Ejemplo: con solo Start presionado el byte vale `0x08`. En C, un botón está presionado si `(data & máscara) != 0`.
+Ejemplo: con solo Start presionado el byte vale `0x08`. 
 
 ## 8. Verificación
 
