@@ -179,7 +179,6 @@ make
 make prog
 ```
 
-Resultado de la prueba: **[COMPLETAR]**
 
 ### 8.3 Verificación con analizador lógico
 
