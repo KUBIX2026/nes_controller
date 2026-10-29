@@ -52,15 +52,11 @@ Los pines 5 y 6 del mando no están conectados.
 
 ## 3. Cómo funciona el mando
 
-Dentro del mando hay un chip **4021**, un registro de desplazamiento que recibe los 8 botones a la vez y los entrega uno por uno por una sola línea.
+Cada botón del control corresponde a una entrada digital del registro de desplazamiento. La consola NES envía un pulso de sincronización (latch) a 60 Hz, lo que permite registrar el estado de los botones. Luego, el registro transmite esta información en serie por el pin 3 (Q8 o Data), recibida por el pin 10. Finalmente, la consola lee los datos, identifica qué botones están presionados y utiliza esta información para ejecutar las acciones correspondientes en el juego.
 
 ![Esquema interno del mando](img/Interno_nes.png)
 
-Cómo se lee el esquema:
 
-- Cada botón conecta una entrada del 4021 a tierra. Una resistencia mantiene la entrada en `1` mientras el botón está suelto. Al presionarlo, la entrada baja a `0`.
-- Un pulso en **LATCH** (pin 9 del chip, `P/S`) hace que el chip copie el estado de los 8 botones.
-- Cada pulso en **CLOCK** (pin 10 del chip) desplaza los bits y hace aparecer el siguiente botón en **DATA** (pin 3 del chip, `Q8`).
 
 ## 4. Protocolo de comunicación
 
@@ -123,12 +119,12 @@ El módulo [`nes_controller.v`](docs/testbench_1/nes_controller.v) contiene una 
 
 ![Integración del control NES en la consola](img/integracion_consolanes.drawio.png)
 
-Este diagrama muestra el camino que recorre una pulsación, desde que el jugador toca un botón hasta que el personaje se mueve en pantalla. Nuestro módulo, `perip_nes`, es la caja verde. Es el nombre del periférico dentro del SoC y por dentro usa `nes_controller`.
+Este diagrama muestra el camino que recorre una pulsación, desde que el jugador toca un botón hasta que el personaje se mueve en pantalla. Nuestro módulo, `perip_nes`, es la caja verde. 
 
-Dentro de la FPGA hay un pequeño sistema (SoC) donde viven la CPU y varios periféricos. Todos se comunican por un mismo "pasillo" compartido, el **Bus CSR**. Cada periférico tiene su propia dirección, como una casa en una calle. La del control NES es `0x450000`.
+Dentro de la FPGA hay un pequeño sistema (SoC) donde viven la CPU y varios periféricos. Todos se comunican por un mismo bus compartido, el **Bus CSR**. Cada periférico tiene su propia dirección. La del control NES es `0x450000`.
 
 1. **El mando y `perip_nes` se comunican.** `perip_nes` envía al mando las señales `LATCH` y `CLOCK`, y el mando responde por `DATA` con el estado de cada botón, uno por uno.
-2. **`perip_nes` arma un byte.** Junta los 8 botones en un solo número, donde cada bit es un botón (`1` = presionado). Esto se repite unas 60 veces por segundo.
+2. **`perip_nes` arma un byte.** Junta los 8 botones en un solo número, donde cada bit es un botón (`1` = presionado). 
 3. **La CPU lee ese byte por el bus.** El firmware en C lee los botones en `0x450000`.
 4. **La CPU decide qué hacer y dibuja.** Según los botones, el juego mueve al personaje y escribe el nuevo dibujo en el Display (`0x480000`).
 5. **El Display lo muestra en el Panel LED.**
@@ -155,7 +151,7 @@ El control se usa en varios momentos del juego, como se ve en el [diagrama gener
 | Izquierda | 6 | `0x40` |
 | Derecha | 7 | `0x80` |
 
-Ejemplo: con solo Start presionado el byte vale `0x08`. En C, un botón está presionado si `(data & máscara) != 0`.
+Ejemplo: con solo Start presionado el byte vale `0x08`. 
 
 ## 8. Verificación
 
@@ -185,7 +181,6 @@ make
 make prog
 ```
 
-Resultado de la prueba: **[COMPLETAR]**
 
 ### 8.3 Verificación con analizador lógico
 
