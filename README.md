@@ -206,4 +206,4 @@ El testbench simula un mando, presiona distintos botones y comprueba el byte rec
 
 ## Autores y licencia
 
-**[COMPLETAR: nombres del equipo]** · **[COMPLETAR: licencia, por ejemplo MIT]**
+**[Juana Valentina Saavedra-Manuel Alejandro Velasco Marinez]** 
