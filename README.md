@@ -48,7 +48,7 @@ Los pines 5 y 6 del mando no están conectados.
 
 ![Pines del control del NES](image.png)
 
-> **Ojo con el voltaje:** el mando funciona a 5 V y los pines de la FPGA aceptan máximo 3,3 V. Verifica que el pin de DATA tolere 5 V; si no, usa un divisor de voltaje o un conversor de niveles.
+> **Ojo con el voltaje:** el mando funciona a 5 V y los pines de la FPGA aceptan máximo 3,3 V. 
 
 ## 3. Cómo funciona el mando
 
