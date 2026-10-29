@@ -26,6 +26,8 @@ El orden de llegada define nuestro mapa:
 
 ![Diagrama de los pines del control del Nes](image.png)
 
+> Esta imagen numera los pines 5 a 7 de otra forma que el esquema del mando (en ella los 5 V son el pin 5, en el esquema son el pin 7). Antes de alimentar el mando, confirma con un multímetro cuál es el pin de 5 V.
+
 
 ## 3. Diagrama de Flujo de los Datos
 
@@ -33,7 +35,7 @@ El siguiente diagrama muestra cómo se mueven los datos al salir del mando como 
 
 ```mermaid
 flowchart TD
-    Mando([MANDO NES]) -- "Envía 1 bit a la vez\n(Cable DATA)" --> Reg
+    Mando([MANDO NES]) -- "Envía 1 bit a la vez<br/>(Cable DATA)" --> Reg
 
     subgraph FASE1 [FASE 1: HARDWARE - Placa FPGA]
         direction TB
@@ -43,12 +45,12 @@ flowchart TD
         Reg --> Inv
     end
 
-    Inv -- "Entrega el paquete completo\nde 8 bits (1 Byte)" --> Rx
+    Inv -- "Entrega el paquete completo<br/>de 8 bits (1 Byte)" --> Rx
 
     subgraph FASE2 [FASE 2: SOFTWARE - CPU / SoC]
         direction TB
         Rx[Recepción del Byte]
-        Mask{Enmascaramiento\nAplica filtro Hexadecimal}
+        Mask{Enmascaramiento<br/>Aplica filtro Hexadecimal}
         Accion([Decisión / Acción])
         
         Rx --> Mask
@@ -61,6 +63,8 @@ flowchart TD
 Para aplicar el concepto de enmascaramiento en el código del juego, definimos constantes usando los valores hexadecimales de nuestro mapa.
 
 ```c
+#include <stdint.h>
+
 // 1. Definición de la dirección de memoria asignada al mando NES 
 
 #define NES_PORT_ADDR 0x450000
