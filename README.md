@@ -75,47 +75,11 @@ El módulo `nes_master` está formado por una **máquina de control** ([`nes_con
 
 ### 6.1 Diagrama de caja negra
 
-![Caja negra de nes_master](img/caja_negra.png)
+![Caja negra de nes_master](<img/Group 1(5).png>)
 
 ### 6.2 Diagrama de flujo
 
-```mermaid
-flowchart TD
-    INICIO(["Inicio de ciclo de lectura (cada 16,6 ms)"])
-
-    subgraph F1["Fase 1: Captura de botones (LATCH)"]
-        direction TB
-        A1[/"LATCH = 1"/] --> A2["Esperar 12 µs"]
-        A2 --> A3[/"LATCH = 0"/]
-    end
-
-    subgraph F2["Fase 2: Lectura serial de 8 bits"]
-        direction TB
-        B1[/"Leer DATA y guardar en registro_temp[0] (botón A)"/] --> B2{{"i = 1"}}
-        B2 --> B3{"¿i ≤ 7?"}
-        B3 -- "Sí" --> B4[/"CLOCK = 1"/]
-        B4 --> B5["Esperar 6 µs"]
-        B5 --> B6[/"CLOCK = 0"/]
-        B6 --> B7["Esperar 6 µs"]
-        B7 --> B8[/"Leer DATA y guardar en registro_temp[i]"/]
-        B8 --> B9["i = i + 1"]
-        B9 --> B3
-    end
-
-    subgraph F3["Fase 3: Entrega a la CPU"]
-        direction TB
-        C1["byte = ~registro_temp (NOT)"] --> C2[/"Escribir byte en 0x450000"/]
-        C2 --> C3[/"Activar Dato Listo en 0x450008"/]
-    end
-
-    ESPERA["Esperar hasta completar 16,6 ms"]
-
-    INICIO --> A1
-    A3 --> B1
-    B3 -- "No" --> C1
-    C3 --> ESPERA
-    ESPERA --> INICIO
-```
+![Diagrama de Flujo](<DiagramaNES.drawio.png>)
 
 ### 6.3 Máquina de control
 
