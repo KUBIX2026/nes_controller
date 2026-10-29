@@ -47,7 +47,7 @@ El mando transmite **un byte** (8 botones), bit a bit, por la línea DATA. Cada 
 
 ![Diagrama de los pines del control del NES](image.png)
 
-> **Advertencia sobre voltajes:** el mando original funciona a 5 V. Muchas FPGAs aceptan como máximo 3,3 V en sus pines. Antes de conectar DATA, verifica que el pin de tu FPGA tolere 5 V; si no, usa un divisor de voltaje o un conversor de niveles. **[COMPLETAR: cómo lo resuelve este proyecto]**
+> **Advertencia sobre voltajes:** el mando original funciona a 5 V. Muchas FPGAs aceptan como máximo 3,3 V en sus pines. Antes de conectar DATA, verifica que el pin de tu FPGA tolere 5 V; si no, usa un divisor de voltaje o un conversor de niveles. 
 
 ## 3. Cómo funciona el mando
 
