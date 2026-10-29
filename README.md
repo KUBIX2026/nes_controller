@@ -42,19 +42,23 @@ Pines del conector del mando y su conexión en la FPGA (Colorlight i9, conector 
 | 2 | `nes_clk` (CLOCK) | Salida | G3 |
 | 3 | `nes_latch` (LATCH) | Salida | F1 |
 | 4 | `nes_data` (DATA) | Entrada | F3 |
-| 7 | VCC | Alimentación (5 V) | - |
-
-Los pines 5 y 6 del mando no están conectados.
+| 5 o 7 (ver nota) | VCC | Alimentación (5 V) | - |
 
 ![Pines del control del NES](image.png)
+
+Conector del mando visto de frente:
+
+![Conector del mando](img/terminal_fisica_NES.jpeg)
+
+> **Nota sobre la numeración:** el diagrama de pines de arriba numera la alimentación (5 V) como pin 5, mientras que el esquema del mando (sección 3) la numera como pin 7. Los pines 1 a 4 coinciden en ambos. Antes de alimentar el mando, confirma con un multímetro cuál es el pin de 5 V.
 
 > **Ojo con el voltaje:** el mando funciona a 5 V y los pines de la FPGA aceptan máximo 3,3 V. Verifica que el pin de DATA tolere 5 V; si no, usa un divisor de voltaje o un conversor de niveles.
 
 ## 3. Cómo funciona el mando
 
-
 ![Esquema interno del mando](img/Interno_nes.png)
-Cada botón del control corresponde a una entrada digital del registro de desplazamiento. La consola NES envía un pulso de sincronización (latch) a 60 Hz, lo que permite registrar el estado de los botones. Luego, el registro transmite esta información en serie por el pin 3 (Q8 o Data), recibida por el pin 10. Finalmente, la consola lee los datos, identifica qué botones están presionados y utiliza esta información para ejecutar las acciones correspondientes en el juego.
+
+Cada botón del control corresponde a una entrada del registro de desplazamiento (el chip 4021). Cuando la consola envía un pulso de **LATCH** (60 veces por segundo, pin 9 del chip), el chip guarda el estado de los 8 botones. Después, cada pulso de **CLOCK** (pin 10 del chip) hace que el chip entregue un botón por el pin 3 (`Q8`), que llega a la consola por la línea **DATA**. Así la consola lee los botones uno por uno, identifica cuáles están presionados y usa esa información para ejecutar las acciones del juego.
 
 ## 4. Protocolo de comunicación
 
@@ -93,8 +97,8 @@ El módulo [`nes_controller.v`](docs/testbench_1/nes_controller.v) contiene una 
 | `latch` (`nes_latch`) | Salida | Línea LATCH hacia el mando |
 | `clock` (`nes_clk`) | Salida | Línea CLOCK hacia el mando |
 | `buttons[7:0]` | Salida | Botones: `1` = presionado |
-| `start_read` | Entrada |  |
-| `ready` | Salida |  |
+| `start_read` | Entrada | Pendiente: aún no está en el código |
+| `ready` | Salida | Pendiente: aún no está en el código |
 
 ### 6.2 Diagrama de flujo
 
@@ -122,7 +126,7 @@ Este diagrama muestra el camino que recorre una pulsación, desde que el jugador
 Dentro de la FPGA hay un pequeño sistema (SoC) donde viven la CPU y varios periféricos. Todos se comunican por un mismo bus compartido, el **Bus CSR**. Cada periférico tiene su propia dirección. La del control NES es `0x450000`.
 
 1. **El mando y `perip_nes` se comunican.** `perip_nes` envía al mando las señales `LATCH` y `CLOCK`, y el mando responde por `DATA` con el estado de cada botón, uno por uno.
-2. **`perip_nes` arma un byte.** Junta los 8 botones en un solo número, donde cada bit es un botón (`1` = presionado). 
+2. **`perip_nes` arma un byte.** Junta los 8 botones en un solo número, donde cada bit es un botón (`1` = presionado).
 3. **La CPU lee ese byte por el bus.** El firmware en C lee los botones en `0x450000`.
 4. **La CPU decide qué hacer y dibuja.** Según los botones, el juego mueve al personaje y escribe el nuevo dibujo en el Display (`0x480000`).
 5. **El Display lo muestra en el Panel LED.**
@@ -149,13 +153,13 @@ El control se usa en varios momentos del juego, como se ve en el [diagrama gener
 | Izquierda | 6 | `0x40` |
 | Derecha | 7 | `0x80` |
 
-Ejemplo: con solo Start presionado el byte vale `0x08`. 
+Ejemplo: con solo Start presionado el byte vale `0x08`. En C, un botón está presionado si `(data & máscara) != 0`.
 
 ## 8. Verificación
 
 ### 8.1 Simulación
 
-El testbench [`tb_nes_controller.v`](docs/testbench_1/tb_nes_controller.v) emula el chip del mando y prueba tres casos: A y Start, Derecha y B, y todos los botones. Para acelerar la simulación, el control se lee a 5 kHz en lugar de 60 Hz. Para ejecutarla:
+El testbench [`tb_nes_controller.v`](docs/testbench_1/tb_nes_controller.v) emula el chip del mando y prueba tres casos: A y Start (`0x09`), Derecha y B (`0x82`) y todos los botones (`0xFF`). Compara cada resultado con el valor esperado e imprime `PASS` si los tres son correctos. Para acelerar la simulación, el control se lee a 5 kHz en lugar de 60 Hz. Para ejecutarla:
 
 ```bash
 cd docs/testbench_1
@@ -179,6 +183,7 @@ make
 make prog
 ```
 
+Para ver el resultado, abre una terminal serie a 115200 baudios. Cada línea tiene 8 caracteres, uno por botón. Por ejemplo, con Start presionado se ve `---T----`, y con A y Derecha presionados se ve `A------R`.
 
 ### 8.3 Verificación con analizador lógico
 
