@@ -128,7 +128,7 @@ El diagrama de flujo completo y la tabla de salidas están en [`docs/diagrama_fl
 | Dirección | Registro | Acceso | Descripción |
 |---|---|---|---|
 | `0x450000` | Botones | Lectura | Un byte con lógica activa en alto: `1` = botón presionado |
-| `0x450008` | Dato Listo | Lectura | Indica que hay un byte nuevo. **[COMPLETAR: bit usado y cómo se borra]** |
+| `0x450008` | Dato Listo | Lectura | Indica que hay un byte nuevo. |
 
 Orden de los bits del byte y máscaras para el firmware en C:
 
