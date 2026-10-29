@@ -52,15 +52,9 @@ Los pines 5 y 6 del mando no están conectados.
 
 ## 3. Cómo funciona el mando
 
-Dentro del mando hay un chip **4021**, un registro de desplazamiento que recibe los 8 botones a la vez y los entrega uno por uno por una sola línea.
 
 ![Esquema interno del mando](img/Interno_nes.png)
-
-Cómo se lee el esquema:
-
-- Cada botón conecta una entrada del 4021 a tierra. Una resistencia mantiene la entrada en `1` mientras el botón está suelto. Al presionarlo, la entrada baja a `0`.
-- Un pulso en **LATCH** (pin 9 del chip, `P/S`) hace que el chip copie el estado de los 8 botones.
-- Cada pulso en **CLOCK** (pin 10 del chip) desplaza los bits y hace aparecer el siguiente botón en **DATA** (pin 3 del chip, `Q8`).
+Cada botón del control corresponde a una entrada digital del registro de desplazamiento. La consola NES envía un pulso de sincronización (latch) a 60 Hz, lo que permite registrar el estado de los botones. Luego, el registro transmite esta información en serie por el pin 3 (Q8 o Data), recibida por el pin 10. Finalmente, la consola lee los datos, identifica qué botones están presionados y utiliza esta información para ejecutar las acciones correspondientes en el juego.
 
 ## 4. Protocolo de comunicación
 
@@ -99,8 +93,8 @@ El módulo [`nes_controller.v`](docs/testbench_1/nes_controller.v) contiene una 
 | `latch` (`nes_latch`) | Salida | Línea LATCH hacia el mando |
 | `clock` (`nes_clk`) | Salida | Línea CLOCK hacia el mando |
 | `buttons[7:0]` | Salida | Botones: `1` = presionado |
-| `start_read` | Entrada | Pendiente de implementar |
-| `ready` | Salida | Pendiente de implementar |
+| `start_read` | Entrada |  |
+| `ready` | Salida |  |
 
 ### 6.2 Diagrama de flujo
 
