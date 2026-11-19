@@ -86,6 +86,12 @@ El módulo [`nes_controller.v`](docs/testbench_1/nes_controller.v) contiene una 
 
 ![Diagrama de bloques del módulo](<img/Group 1(5).png>)
 
+Al interior del bloque principal, 
+![Diagrama de bloques del módulo](<img/Group 2(3).png>)
+
+### Bosquejo inicial de maquína de estados finitos: 
+![Diagrama de bloques del módulo](<img/Group 7.png>)
+
 | Puerto | Dirección | Descripción |
 |---|---|---|
 | `clk` | Entrada | Reloj de la FPGA |
