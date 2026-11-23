@@ -16,6 +16,20 @@ En el presente repositorio se encuentran los avances producidos y la informació
 
 ---
 
+clock e blanco 
+data es cafe
+5V es rojo
+latch azul
+GND amarillo
+
+
+
+
+
+
+
+
+
 ## 1. Visión general
 
 El mando se comunica con el SoC por un bus serie síncrono de solo lectura, con un modelo maestro-esclavo:
