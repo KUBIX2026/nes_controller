@@ -1,0 +1,78 @@
+TARGET = nes_driver
+TOP    = nes_driver
+SRC    = src
+TB     = tb
+
+# Modulos del driver (los mismos bloques del diagrama)
+OBJS   = $(SRC)/nes_timer.v $(SRC)/nes_bit_counter.v $(SRC)/nes_shift_reg.v \
+         $(SRC)/nes_fsm.v $(SRC)/nes_driver.v
+
+# Tang Nano 9K
+DEVICE = GW1NR-LV9QN88PC6/I5
+FAMILY = GW1N-9C
+CST    = constraints/tangnano9k.cst
+
+# Place & route: se prefiere nextpnr-himbaechel, que es el que usan las
+# versiones nuevas de Apicula (gowin_pack). El nextpnr-gowin antiguo no escribe
+# el dato 'packer.chipdb' que gowin_pack nuevo exige. Si no hay himbaechel,
+# se usa nextpnr-gowin (solo sirve con un gowin_pack antiguo).
+ifneq ($(shell command -v nextpnr-himbaechel 2>/dev/null),)
+PNR = nextpnr-himbaechel --freq 27 --json $(TOP).json --write $(TOP)_pnr.json --device $(DEVICE) --vopt family=$(FAMILY) --vopt cst=$(CST)
+else
+PNR = nextpnr-gowin --freq 27 --json $(TOP).json --write $(TOP)_pnr.json --device $(DEVICE) --family $(FAMILY) --cst $(CST)
+endif
+
+# Modelos de simulacion de las primitivas Gowin (vienen con yosys)
+GOWIN_SIM_CELLS = $(shell yosys-config --datdir)/gowin/cells_sim.v
+
+# ---------------------------------------------------------------- Simulacion
+sim:
+	rm -f a.out *.vcd
+	iverilog  -DBENCH -o a.out $(TB)/$(TARGET)_TB.v $(OBJS)
+	vvp a.out
+	gtkwave $(TARGET)_TB.vcd
+# Igual que sim pero sin abrir gtkwave (util para verificar rapido / CI)
+test:
+	rm -f a.out *.vcd
+	iverilog  -o a.out $(TB)/$(TARGET)_TB.v $(OBJS)
+	vvp a.out
+sim_post_syn:
+	yosys -v3 -l synth.log -p 'synth_gowin -top $(TARGET) -json $(TARGET).json; write_verilog -attr2comment $(TARGET)_synth.v' $(OBJS)
+	iverilog  -o a.out $(TB)/$(TARGET)_TB.v $(TARGET)_synth.v $(GOWIN_SIM_CELLS)
+	vvp a.out
+	gtkwave $(TARGET)_TB.vcd
+
+# ---------------------------------------------------------------- Diagrama
+svg: $(OBJS)
+	rm -rf *svg *out *dot
+	yosys -p "prep -top ${TARGET}; memory_map; opt; opt_expr; techmap; abc -g AND,OR,XOR; write_json ${TARGET}.json" ${OBJS}
+	yosys -p "read_verilog ${OBJS}; proc; memory_map; opt; opt_expr; techmap; abc -g AND,OR,XOR; show -format dot -prefix ${TARGET}_out"
+	netlistsvg ${TARGET}.json -o ${TARGET}.svg
+	google-chrome ${TARGET}.svg
+
+# ---------------------------------------------------------------- FPGA
+# make synth -> make pnr -> make bitstream -> make prog   (o simplemente: make prog)
+# Revisa que las herramientas de codigo abierto esten instaladas y en el PATH
+check_tools:
+	@for t in yosys gowin_pack openFPGALoader; do \
+	  command -v $$t >/dev/null 2>&1 || { echo "FALTA: $$t  (ver instrucciones de instalacion)"; exit 1; }; \
+	done
+	@command -v nextpnr-himbaechel >/dev/null 2>&1 || command -v nextpnr-gowin >/dev/null 2>&1 || \
+	  { echo "FALTA: nextpnr-himbaechel / nextpnr-gowin  (ver instrucciones de instalacion)"; exit 1; }
+	@echo "Herramientas OK"
+synth: $(OBJS)
+	yosys -v3 -l synth.log -p 'synth_gowin -top $(TOP); delete t:$$scopeinfo; write_json $(TOP).json' $(OBJS)
+pnr:  synth
+	$(PNR)
+bitstream: pnr
+	gowin_pack -d $(FAMILY) -o $(TOP).fs $(TOP)_pnr.json
+# make sram: compila y carga en SRAM (se borra al quitar la alimentacion)
+sram: bitstream
+	openFPGALoader -b tangnano9k -m $(TOP).fs
+prog: sram
+prog_flash: bitstream
+	openFPGALoader -b tangnano9k -f $(TOP).fs
+
+clean:
+	rm -rf *svg *out *dot a.out *.vcd *json *_synth.v *log *.fs
+.PHONY: sim test sim_post_syn svg check_tools synth pnr bitstream sram prog prog_flash clean

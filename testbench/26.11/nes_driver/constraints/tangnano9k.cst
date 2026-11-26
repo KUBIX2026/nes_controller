@@ -1,0 +1,54 @@
+// ============================================================================
+// Restricciones para Sipeed Tang Nano 9K  (GW1NR-LV9QN88PC6/I5)
+// ============================================================================
+
+
+IO_LOC  "rst_n" 4;
+IO_PORT "rst_n" IO_TYPE=LVCMOS18;
+
+// Control NES (pines del header; cambialos si ya los usas)
+IO_LOC  "latch" 25;
+IO_LOC  "clock" 26;
+IO_LOC  "data"  27;
+IO_PORT "latch" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "clock" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "data"  IO_TYPE=LVCMOS33 PULL_MODE=UP;
+
+//Clk_in interno de la FPGA
+IO_LOC  "clk_in" 52;
+IO_PORT "clk_in" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+
+//start read interno de FPGA
+IO_LOC  "start_read" 41;
+IO_PORT "start_read" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+
+
+
+
+//Ready 
+IO_LOC  "ready"  55;
+IO_PORT "latch" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+
+
+
+
+// Salida de los 8 botones leidos (1 = presionado)
+// [0]=A [1]=B [2]=Select [3]=Start [4]=Up [5]=Down [6]=Left [7]=Right
+IO_LOC  "buttons[0]" 28;
+IO_LOC  "buttons[1]" 29;
+IO_LOC  "buttons[2]" 30;
+IO_LOC  "buttons[3]" 31;
+IO_LOC  "buttons[4]" 32;
+IO_LOC  "buttons[5]" 33;
+IO_LOC  "buttons[6]" 34;
+IO_LOC  "buttons[7]" 35;
+IO_PORT "buttons[0]" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "buttons[1]" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "buttons[2]" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "buttons[3]" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "buttons[4]" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "buttons[5]" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "buttons[6]" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "buttons[7]" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+
+

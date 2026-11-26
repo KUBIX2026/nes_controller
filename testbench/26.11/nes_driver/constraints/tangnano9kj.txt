@@ -1,0 +1,51 @@
+// ============================================================================
+// Restricciones para Sipeed Tang Nano 9K  (GW1NR-LV9QN88PC6/I5)
+// Top: nes_driver
+// Todos los puertos de nes_driver son pines fisicos.
+// ============================================================================
+
+// Reloj de 27 MHz de la placa -> entra por clk_in
+IO_LOC  "clk_in" 52;
+IO_PORT "clk_in" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+
+// Boton S1 de la placa = RESET (activo en bajo)
+IO_LOC  "rst_n" 4;
+IO_PORT "rst_n" IO_TYPE=LVCMOS18 PULL_MODE=UP;
+
+// start_read: entrada externa en un pin del header.
+//   - Sin conectar: la resistencia pull-up lo deja en 1 y el driver lee
+//     de forma continua (ideal para ver latch/clock en el osciloscopio).
+//   - Para disparar lecturas a mano: ponlo a GND y luego sueltalo / pasalo a 1.
+IO_LOC  "start_read" 41;
+IO_PORT "start_read" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+
+// Control NES
+IO_LOC  "latch" 25;
+IO_LOC  "clock" 26;
+IO_LOC  "data"  27;
+IO_PORT "latch" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "clock" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "data"  IO_TYPE=LVCMOS33 PULL_MODE=UP;
+
+// Ready (pulso de 1 ciclo al terminar la lectura)
+IO_LOC  "ready" 36;
+IO_PORT "ready" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+
+// Salida de los 8 botones (1 = presionado)
+// [0]=A [1]=B [2]=Select [3]=Start [4]=Up [5]=Down [6]=Left [7]=Right
+IO_LOC  "buttons[0]" 28;
+IO_LOC  "buttons[1]" 29;
+IO_LOC  "buttons[2]" 30;
+IO_LOC  "buttons[3]" 31;
+IO_LOC  "buttons[4]" 32;
+IO_LOC  "buttons[5]" 33;
+IO_LOC  "buttons[6]" 34;    
+IO_LOC  "buttons[7]" 35;
+IO_PORT "buttons[0]" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "buttons[1]" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "buttons[2]" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "buttons[3]" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "buttons[4]" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "buttons[5]" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "buttons[6]" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
+IO_PORT "buttons[7]" IO_TYPE=LVCMOS33 DRIVE=8 PULL_MODE=NONE;
