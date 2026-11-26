@@ -14,7 +14,48 @@ En el presente repositorio se encuentran los avances producidos y la informació
 8. [Verificación](#8-verificación)
 9. [Documentación adicional](#9-documentación-adicional)
 
+## Contenido
+1. [Funcionamiento básico del Control]
+2. [Protocolo de Comunicaciones]
+3. [Conexiones físicas del Mando]
+4. [Tramas arrojadas por el control]
+5. [Diagrama de Flujo]
+6. [Diagrama de Bloques] - Dentro de esta seccion deberia explicar al menos de que tipo es cada señal o cambiarle el color si son de control, etc.
+7. [Maquína de Estados Finitos]
+8. [Datapath]
+9. [Integración de Interrupciones para Exportar Datos]
+10. [Testbench Realizado]
+11. [Avances]
+    
+
 ---
+
+## 1. Funcionamiento Básico del Control 
+El control de la consola NES cuenta con 8 botones (en el caso del control que se compró son 10 pero solo se emplearán 8): A, B, Select, Start, Arriba, Abajo, Izquierda y Derecha. Cuenta con 5 cables para las 5 señales asociadas al control (tanto entradas como salidas)
+
+## 2. Protocolo de Comunicaciones 
+El protocolo de comunicaciones del NES se basa en las siguientes señales: 
+- latch: Una señal de control que genera la FPGA hacia el control. Esta señal causa que el circuito integrado al interior de la NES (4021N) capture en paralelo el estado de los 8 botones. Dura 12us. Cuando sube pone el registro en modo de carga paralela y cuando baja lo regresa a un desplazamiento en serie.
+- Clock: Señal de control generada por la FPGA hacia el control. Cada pulso de clock desplaza el registro de corrimiento y ubica al bit siguiente en la línea de Data.
+- Data: Señal de datos que va del control a la FPGA. Es lo único que el control le da a la FPGA y lleva el estado de cada botón
+
+Este protocolo se puede evidenciar mediante la siguiente imagen: 
+
+![Protocolo de comunicaciones](img/readme/protocolo_comunicaciones.png)
+
+## 3. Conexiones Físicas del Mando 
+Para el proyecto, se contaba con un mando de 9 pines, a pesar de solo contar con 5 conexiones: para alimentación (5V), GND, y las señales Clock, Latch y Data. Dentro del conector, se distribuyen de la siguiente forma y con los siguientes colores:
+
+![Protocolo de comunicaciones](img/readme/Conexiones_NES.png)
+
+Donde clock es el cable de color blanco, Data de color café, la alimentación con 5V es roja, la señal de Latch es azul y GND es amarillo. 
+
+
+
+
+
+
+
 
 clock e blanco 
 data es cafe
